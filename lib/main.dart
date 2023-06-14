@@ -13,7 +13,7 @@ class MyWidget extends StatelessWidget {
     return MaterialApp(
       title: "Todo App",
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.cyan),
+      theme: ThemeData(primarySwatch: Colors.deepPurple),
       home: TodoList(),
     );
   }

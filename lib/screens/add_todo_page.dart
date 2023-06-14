@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:todo_crud/screens/todo_list.dart';
 
 class AddTodo extends StatefulWidget {
-  const AddTodo({super.key});
+  final Map? todo;
+  const AddTodo({super.key, this.todo});
 
   @override
   State<AddTodo> createState() => _AddTodoState();
@@ -15,11 +16,27 @@ class _AddTodoState extends State<AddTodo> {
   TextEditingController titleController = TextEditingController();
   TextEditingController descController = TextEditingController();
 
+  bool isEdit = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final todo = widget.todo;
+    if (todo != null) {
+      isEdit = true;
+      final title = todo['title'];
+      final desc = todo['desc'];
+      titleController.text = title;
+      descController.text = desc;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Todo"),
+        title: Text(isEdit ? "Edit Todo" : "Add Todo"),
       ),
       body: ListView(
         children: [
@@ -43,11 +60,34 @@ class _AddTodoState extends State<AddTodo> {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(onPressed: addTodo, child: Text("Submit")),
+            child: ElevatedButton(
+                onPressed: isEdit ? updateTodo : addTodo,
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Text(isEdit ? "Update" : "Create"),
+                )),
           )
         ],
       ),
     );
+  }
+
+  Future<void> updateTodo() async {
+    final todo = widget.todo;
+    // final id = todo;
+    if (todo != null) {
+      final id = todo['id'];
+      final obj = {"title": titleController.text, "desc": descController.text};
+      print(obj);
+      final uri = Uri.parse("http://localhost:3000/tasks/$id");
+      final response = await http.put(uri,
+          body: jsonEncode(obj), headers: {'Content-Type': 'application/json'});
+      if (response.statusCode == 200) {
+        showSuccessMessage("Data updated");
+      } else {
+        showErrorMessage("Updating Failed");
+      }
+    }
   }
 
   void addTodo() async {
@@ -63,8 +103,16 @@ class _AddTodoState extends State<AddTodo> {
       // final route = MaterialPageRoute(builder: (context) => TodoList());
       // Navigator.push(context, route);
     } else {
-      print("Some thing wrong");
+      showErrorMessage("Some thing wrong");
     }
+  }
+
+  void showErrorMessage(String message) {
+    final snackBar = SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void showSuccessMessage(String message) {

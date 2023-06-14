@@ -60,9 +60,24 @@ class _TodoListState extends State<TodoList> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  void navigateToAddTodo() {
+  Future<void> navigateToEditPage(Map todo) async {
+    final route = MaterialPageRoute(
+      builder: (context) => AddTodo(todo: todo),
+    );
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    fetchTodoList();
+  }
+
+  Future<void> navigateToAddTodo() async {
     final route = MaterialPageRoute(builder: (context) => AddTodo());
-    Navigator.push(context, route);
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    fetchTodoList();
   }
 
   @override
@@ -81,7 +96,7 @@ class _TodoListState extends State<TodoList> {
           child: ListView.builder(
             itemBuilder: (context, index) {
               final id = todoList[index]['id'];
-
+              final todo = todoList[index];
               return ListTile(
                 leading: CircleAvatar(child: Text('${todoList[index]['id']}')),
                 title: Text(
@@ -91,9 +106,10 @@ class _TodoListState extends State<TodoList> {
                 trailing: PopupMenuButton(
                   onSelected: (value) {
                     if (value == 'edit') {
+                      navigateToEditPage(todo);
                     } else if (value == 'delete') {
                       deleteById(id);
-                      // print(id);
+                      print(id);
                     }
                   },
                   itemBuilder: (context) {
